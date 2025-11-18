@@ -5,7 +5,7 @@ TARGET := sniff
 
 SRCS := main.cpp setup.cpp
 OBJS := $(SRCS:.cpp=.o)
-HEADERS := setup.h raw_socket.h my_net_structs.h
+HEADERS := setup.h raw_socket.h net_structs/my_ethhdr.h
 
 .PHONY: all clean
 

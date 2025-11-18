@@ -6,11 +6,11 @@
 #include <iomanip>
 #include "raw_socket.h"
 #include "setup.h"
-#include "my_net_structs.h"
+#include "net_structs/my_ethhdr.h"
 
 #define MAX_BUFFER_SIZE 65536
 
-std::string bytes_to_hex_str(unsigned char* buf) {
+std::string bytes_to_hex_str(const unsigned char* buf) {
     std::stringstream ss;
     ss << std::hex << std::setfill('0');
     for (int i = 0; i < 6; i++) {
@@ -56,9 +56,13 @@ int main() {
                 "recvfrom failed"
             );
         } else {
-            struct my_ethhdr* eth = reinterpret_cast<struct my_ethhdr*>(buf);
-            std::string dst_mac = bytes_to_hex_str(eth->dst_mac);
-            std::string src_mac = bytes_to_hex_str(eth->src_mac);
+            MyEthhdr eth(buf, nread);
+            if (!eth.is_standard()) {
+                std::cout << "WARNING: get vlan frame, dropping\n";
+                continue;
+            }
+            std::string dst_mac = bytes_to_hex_str(eth.get_header().dst_mac);
+            std::string src_mac = bytes_to_hex_str(eth.get_header().src_mac);
 
             printf("message received. len = %ld\n", nread);
             std::cout << "dst_mac = " << dst_mac << std::endl;
