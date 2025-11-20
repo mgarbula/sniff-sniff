@@ -9,8 +9,7 @@ MyIphdr::MyIphdr(const unsigned char* buf) {
     if (ihl_ > 5) {
         has_options_ = true;
     } else {
-        // dropping packets with options (https://en.wikipedia.org/wiki/IPv4#Options)
-        // that packets are probably dropped by routers anyway
+        // (https://en.wikipedia.org/wiki/IPv4#Options)
         data_len_ = ((unsigned int) header_.total_length[0] << 8) | (unsigned int) header_.total_length[1];
         data_ = std::make_unique<unsigned char[]>(data_len_);
         std::memcpy(data_.get(), buf + sizeof(MyIphdr::Header), data_len_);
