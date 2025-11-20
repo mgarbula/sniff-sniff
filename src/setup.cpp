@@ -5,6 +5,7 @@
 #include <net/ethernet.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include "setup.hpp"
 
 unsigned int name_to_index(const char* interface_name) {
     unsigned int if_index = if_nametoindex(interface_name);

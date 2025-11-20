@@ -2,25 +2,12 @@
 #include <arpa/inet.h>
 #include <net/ethernet.h>
 #include <sys/time.h> // for struct timeval
-#include <sstream>
-#include <iomanip>
-#include "raw_socket.h"
-#include "setup.h"
-#include "net_structs/my_ethhdr.h"
+#include "raw_socket.hpp"
+#include "setup.hpp"
+#include "my_ethhdr.hpp"
+#include "my_iphdr.hpp"
 
 #define MAX_BUFFER_SIZE 65536
-
-std::string bytes_to_hex_str(const unsigned char* buf) {
-    std::stringstream ss;
-    ss << std::hex << std::setfill('0');
-    for (int i = 0; i < 6; i++) {
-        ss << std::setw(2) << static_cast<unsigned int>(buf[i]);
-        if (i < 5) {
-            ss << ":";
-        }
-    }
-    return ss.str();
-}
 
 int main() {
     RawSocket socket = RawSocket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
@@ -58,15 +45,26 @@ int main() {
         } else {
             MyEthhdr eth(buf, nread);
             if (!eth.is_standard()) {
-                std::cout << "WARNING: get vlan frame, dropping\n";
+                std::cerr << "WARNING: get vlan frame, dropping\n";
                 continue;
             }
-            std::string dst_mac = bytes_to_hex_str(eth.get_header().dst_mac);
-            std::string src_mac = bytes_to_hex_str(eth.get_header().src_mac);
 
-            printf("message received. len = %ld\n", nread);
-            std::cout << "dst_mac = " << dst_mac << std::endl;
-            std::cout << "src_mac = " << src_mac << std::endl;
+            // printf("message received. len = %ld\n", nread);
+            // std::cout << "src_mac = " << eth.get_src_mac_str() << std::endl;
+            // std::cout << "dst_mac = " << eth.get_dst_mac_str() << std::endl;
+            if (eth.get_eth_type() != 0x0800) {
+                std::cerr << "WARNING: IPv6 packet, dropping\n";
+                continue;
+            }
+            MyIphdr ip(eth.get_payload_data());
+            if (ip.has_options())  {
+                std::cerr << "WARNING: IP packet has options, dropping\n";
+                continue;
+            }
+            std::cout << "src_ip = " << ip.get_src_ip() << std::endl;
+            std::cout << "dst_ip = " << ip.get_dst_ip() << std::endl;
+            std::cout << "data_len = " << ip.get_data_len() << std::endl;
+            std::cout << "=========================\n";
         }
     }
 
