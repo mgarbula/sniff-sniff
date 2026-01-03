@@ -13,6 +13,7 @@ The goal is to create a packet sniffer which will print the summary of all incom
 ## Currently implemented
 * Receiving frame from layer 2 (ethernet)
 * Receiving packet from layer 3 (IP)
+* Recognizing TCP protocol and start of threeway handshake
 
 ## Limitations
 * Dropping VLAN frames
