@@ -16,6 +16,19 @@ MyIphdr::MyIphdr(const unsigned char* buf) {
     }
 }
 
+protocol MyIphdr::get_protocol() const {
+    if (header_.protocol[0] == 1) {
+        return ICMP;
+    } else if (header_.protocol[0] == 2) {
+        return IGMP;
+    } else if (header_.protocol[0] == 6) {
+        return TCP;
+    } else if (header_.protocol[0] == 17) {
+        return UDP;
+    }
+    return UNDEFINED;
+}
+
 std::string const MyIphdr::bytes_to_int_string_(const unsigned char* buf) const {
     std::stringstream ss;
     ss << std::dec << std::setfill('0');

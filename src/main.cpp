@@ -6,12 +6,13 @@
 #include "setup.hpp"
 #include "my_ethhdr.hpp"
 #include "my_iphdr.hpp"
+#include "my_tcp.hpp"
 
 #define MAX_BUFFER_SIZE 65536
 
 int main() {
     RawSocket socket = RawSocket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-    const char* interface_name = "wlp2s0"; // to check this run `ip addr show`
+    const char* interface_name = "lo"; // to check this run `ip addr show`
     unsigned int if_index = name_to_index(interface_name);
 
     my_bind(socket.get_desc(), if_index);
@@ -61,10 +62,22 @@ int main() {
                 std::cerr << "WARNING: IP packet has options, dropping\n";
                 continue;
             }
-            std::cout << "src_ip = " << ip.get_src_ip() << std::endl;
-            std::cout << "dst_ip = " << ip.get_dst_ip() << std::endl;
-            std::cout << "data_len = " << ip.get_data_len() << std::endl;
-            std::cout << "=========================\n";
+            if (ip.get_protocol() == TCP) {
+                std::cout << "TCP packet received\n";
+                MyTCP tcp(ip.get_data());
+                std::cout << "source port = " << tcp.get_source_port() << std::endl;
+                std::cout << "destination port = " << tcp.get_destination_port() << std::endl;
+                if (ip.get_src_ip() == "127.0.0.1") {
+                    std::cout << "sending\n";
+                    if (tcp.three_way_handshake_send_syn()) {
+                        std::cout << "SYN flag sent\n";
+                    }
+                }
+                std::cout << "src_ip = " << ip.get_src_ip() << std::endl;
+                std::cout << "dst_ip = " << ip.get_dst_ip() << std::endl;
+                std::cout << "data_len = " << ip.get_data_len() << std::endl;
+                std::cout << "=========================\n";
+            }
         }
     }
 

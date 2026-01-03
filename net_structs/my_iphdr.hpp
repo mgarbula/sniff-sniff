@@ -1,6 +1,14 @@
 #include <iostream>
 #include <memory>
 
+enum protocol {
+    UNDEFINED = 0,
+    ICMP = 1,
+    IGMP = 2,
+    TCP = 6,
+    UDP = 17
+};
+
 class MyIphdr {
 public:
     #pragma pack(push, 1)
@@ -22,8 +30,10 @@ public:
     bool has_options() const { return has_options_; }
     unsigned short get_ihl() const { return ihl_; }
     size_t get_data_len() const { return data_len_; }
-    std::string get_src_ip() { return bytes_to_int_string_(header_.src_ip); }
-    std::string get_dst_ip() { return bytes_to_int_string_(header_.dst_ip); }
+    std::string get_src_ip() const { return bytes_to_int_string_(header_.src_ip); }
+    std::string get_dst_ip() const { return bytes_to_int_string_(header_.dst_ip); }
+    protocol get_protocol() const;
+    const unsigned char* get_data() const { return data_.get(); }
 private:
     std::string const bytes_to_int_string_(const unsigned char*) const;
     MyIphdr::Header header_;
